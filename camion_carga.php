@@ -6,7 +6,7 @@
   include_once "includes/menuSidebar.inc.php";
 
   require_once 'funciones/conexion.php';
-  include_once "funciones/select_marcas.php";
+  include_once "funciones/listadosGet.php";
   include_once "funciones/validacion_registro_camion.php";
   include_once "funciones/insertar_camiones.php"; // No olvidarse de hacer todos los includes jeje
   // <-<-<- Listar lo necesario para trabajar en este script ->->->
@@ -19,11 +19,13 @@
     $Mensaje = Validar_Datos();
     $DatoFaltante = DatoRequerido();
     if (empty($Mensaje)) {
-      if (InsertarCamiones($MiConexion) != false) {
+      if (InsertarCamiones($MiConexion) !== false) {
         $MensajeOk = 'Se ha registrado correctamente.';
-        $_POST = array();
+        $_POST = array();// Reiniciar el formulario
         $Estilo = 'success';
-      }
+      }else {
+        $Mensaje = 'Hubo un error al registrar el camión.';
+    }
     }
   }
 
@@ -71,8 +73,6 @@
               <?php } ?><!-- // <-<-<- End Success messenger ->->-> -->
 
 
-
-
               <form class="row g-3" method="post">
 
                 <div class="col-12">
@@ -101,7 +101,7 @@
 
                 <div class="col-12">
                   <label for="patente" class="form-label">Patente (*)</label>
-                  <input type="text" class="form-control" id="patente" name="PATENTE" value="<?php echo !empty($_POST['PATENTE']) ? $_POST['PATENTE'] : ''; ?>">
+                  <input type="text" class="form-control" id="patente" name="PATENTE"  limi  value="<?php echo !empty($_POST['PATENTE']) ? $_POST['PATENTE'] : ''; ?>">
                 </div>
 
                 <div class="col-12">

@@ -36,7 +36,7 @@
             <ul id="forms-nav" class="nav-content collapse show" data-bs-parent="#sidebar-nav">
                 <li>
                     <a href="viaje_carga.php" class="active">
-                        <i class="bi bi-file-earmark-plus"></i><span>Cargar nuevo</span>
+                        <i class="bi bi-file-earmark-plus"></i><span>Cargar nuevo viaje</span>
                     </a>
                 </li>
                 <li>

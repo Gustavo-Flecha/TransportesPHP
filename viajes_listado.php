@@ -1,8 +1,17 @@
 <?php include_once "includes/head.inc.php" ?>
 
 <body>
-  <?php include_once "includes/header.inc.php" ?>
-  <?php include_once "includes/menuSidebar.inc.php" ?>
+  <?php
+  include_once "includes/header.inc.php";
+  include_once "includes/menuSidebar.inc.php";
+  include_once "funciones/conexion.php";
+  include_once "funciones/listadosGet.php";
+
+  // <-<-<- Listar lo necesario para trabajar en este script ->->->
+  $MiConexion =  ConexionBD();
+  $ListadoViajes = ListarViajes($MiConexion);
+
+  ?>
 
   <main id="main" class="main">
 
@@ -39,74 +48,61 @@
                     <th scope="col">Monto Chofer</th>
                   </tr>
                 </thead>
+
                 <tbody>
-                  <tr class="table-success" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-original-title="Viaje realizado">
-                    <th scope="row">1</th>
-                    <td>02/06/2024</td>
-                    <td>Capilla del Monte</td>
-                    <td>Iveco - Daily Furgon - AC206JK</td>
-                    <td>Alvarez, Marcos</td>
-                    <td>$ 300.000</td>
-                    <td>$ 30.000 (10%)</td>
-                  </tr>
+                  <?php date_default_timezone_set("America/Argentina/Cordoba");
+                  $i = 0;
 
-                  <tr class="table-danger" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-original-title="Viaje de hoy">
-                    <th scope="row">2</th>
-                    <td>03/06/2024</td>
-                    <td>Morteros</td>
-                    <td>Scania - Serie P - AA322CX</td>
-                    <td>Rodriguez, Ariel</td>
-                    <td>$ 100.000</td>
-                    <td>$ 15.000 (15%)</td>
-                  </tr>
+                  foreach ($ListadoViajes as $viajes) {
 
-                  <tr class="table-danger" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-original-title="Viaje de hoy">
-                    <th scope="row">3</th>
-                    <td>03/06/2024</td>
-                    <td>Toledo</td>
-                    <td>Iveco - Daily Chasis - AD698HA</td>
-                    <td>Zapata, Joaquin </td>
-                    <td>$ 250.000</td>
-                    <td>$ 25.000 (10%)</td>
-                  </tr>
+                    $i++;
+                    $comunicado = "";
+                    $color = "";
+                    $Fecha_viaje = date("Y-m-d", strtotime($viajes["FECHA_SALIDA"]));
+                    //defino la fecha de hoy
+                    $Fecha_actual = date("Y-m-d");
+                    //de esta manera sabemos cual es la fecha de mañana (sumamos un dia a hoy)
+                    $Maniana = date("Y-m-d", strtotime($Fecha_actual . "+ 1 day"));
+                    //la fecha del viaje es menor a hoy?
+                    if ($Fecha_viaje < $Fecha_actual) {
+                      $comunicado = "¡Viaje realizado!";
+                      $color = "success";
+                    }
+                    //la fecha del viaje es para hoy?
+                    elseif ($Fecha_viaje == $Fecha_actual) {
+                      $comunicado = "¡El viaje es hoy!";
+                      $color = "danger";
+                    } elseif ($Fecha_viaje == $Maniana) {
+                      $comunicado = "¡El viaje es mañana!";
+                      $color = "warning";
+                    } elseif ($Fecha_viaje > $Fecha_actual) {
+                      $comunicado = "¡El viaje se hará pronto!";
+                      $color = "info";
+                    }
 
-                  <tr class="table-warning" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-original-title="Viaje de mañana">
-                    <th scope="row">4</th>
-                    <td>04/06/2024</td>
-                    <td>Capilla del Monte</td>
-                    <td>Scania - Serie P - AA322CX</td>
-                    <td>Perez, Juan </td>
-                    <td>$ 350.000</td>
-                    <td>$ 70.000 (20%)</td>
-                  </tr>
-
-                  <tr>
-                    <th scope="row">5</th>
-                    <td>10/06/2024</td>
-                    <td>Capilla del Monte</td>
-                    <td>Scania - Serie P - AA322CX</td>
-                    <td>Perez, Juan </td>
-                    <td>$ 350.000</td>
-                    <td>$ 70.000 (20%)</td>
-                  </tr>
-
-
+                    $montoChofer = ((($viajes["COSTO_VIAJE"]) * ($viajes["PORCENTAJE_CHOFER"])) / 100);
+                    $montoFormateado = number_format($montoChofer, 0, '', '.');
+                  ?>
+                    <tr class="table-<?php echo $color ?>" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-original-title="<?php echo $comunicado ?>">
+                      <th scope="row"><?php echo $i ?></th>
+                      <td><?php echo date('d/m/y', strtotime($viajes["FECHA_SALIDA"])) ?></td>
+                      <td><?php echo $viajes["NOM_CIUDAD"] ?></td>
+                      <td><?php echo $viajes["NOM_MARCA"] . ' - ' . $viajes["NOM_MODELO"] . ' - ' . $viajes["PATENTE"]; ?></td>
+                      <td><?php echo $viajes["APELLIDO"] . ', ' . $viajes["NOMBRE"]; ?></td>
+                      <td>$<?php echo  number_format($viajes["COSTO_VIAJE"], 0, '', '.') ?></td>
+                      <td>$<?php echo $montoFormateado . '(' . ($viajes["PORCENTAJE_CHOFER"]) . '%)' ?></td>
+                    </tr>
+                  <?php } ?>
                 </tbody>
               </table>
               <!-- End Default Table Example -->
-
-
             </div>
           </div>
         </div>
-
-
-
-
       </div>
     </section>
-
   </main><!-- End #main -->
 </body>
 <?php include_once "includes/footer.inc.php" ?>
+
 </html>

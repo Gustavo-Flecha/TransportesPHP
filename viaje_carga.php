@@ -6,15 +6,32 @@
   include_once "includes/menuSidebar.inc.php";
 
   require_once 'funciones/conexion.php';
-  include_once "funciones/select_marcas.php";
-  include_once "funciones/validacion_registro_camion.php";
-  include_once "funciones/insertar_camiones.php"; // No olvidarse de hacer todos los includes jeje
+  include_once "funciones/listadosGet.php";
+  include_once "funciones/validacion_registro_viaje.php";
+  include_once "funciones/insertar_viajes.php"; 
 
   // <-<-<- Listar lo necesario para trabajar en este script ->->->
   $MiConexion =  ConexionBD();
-  $ListadoTrasnporte = ListarTransporte($MiConexion);
+  $ListadoTrasnporte = ListarTransportes($MiConexion);
   $ListadoChofer = ListarChoferesActivos($MiConexion);
+  $ListadoDestino =  ListarDestinos($MiConexion);
 
+  $Mensaje = "";
+  $MensajeOk = "";
+  if (!empty($_POST['BotonRegistrar'])) {
+    $Mensaje = Validar_Datos();
+    (!empty($Mensaje))? $DatoFaltante=" " : $DatoFaltante=""; //Datos faltantes 
+    if (empty($Mensaje)) {
+      if (InsertarViajes($MiConexion) !== false) {
+        $MensajeOk = 'Se ha registrado correctamente.';
+        $_POST = array();// Reiniciar el formulario
+        $Estilo = 'success';
+      }else {
+        $Mensaje = 'Hubo un error al registrar el camión.';
+    }
+    }
+  }
+  
   ?>
 
   <main id="main" class="main">
@@ -40,7 +57,7 @@
               <?php if (!empty($DatoFaltante)) { ?>
                 <div class="alert alert-info alert-dismissible fade show" role="alert">
                   <i class="bi bi-info-circle me-1"></i>
-                  El campo <?php echo $DatoFaltante; ?> (*) es requerido
+                  Los campos con <?php echo $DatoFaltante; ?> (*) son necesarios
                 </div>
               <?php } ?> <!-- // <-<-<- End required messenger ->->-> -->
 
@@ -58,7 +75,8 @@
                 </div>
               <?php } ?><!-- // <-<-<- End Success messenger ->->-> -->
 
-              <form class="row g-3">
+              <form class="row g-3" method="post">
+
                 <div class="col-12">
                   <label for="selector" class="form-label">Chofer (*)</label>
                   <select class="form-select" aria-label="Selector" id="selector" name="CHOFER">
@@ -70,10 +88,9 @@
                         <?php echo $chofer["NOMBRE"]. ', '.$chofer["APELLIDO"]. ' - (DNI '.$chofer["DNI"].')'; ?>
                       </option>
                     <?php } ?>
-
-                    <option>Zapata, Joaquin (DNI 55666777) </option>
                   </select>
                 </div>
+
                 <div class="col-12">
                   <label for="selector" class="form-label">Transporte (*)</label>
                   <select class="form-select" aria-label="Selector" id="selector" name="TRANSPORTE">
@@ -86,45 +103,46 @@
                         <?php echo $transporte["NOM_MARCA"].' - '.$transporte["NOM_MODELO"]. ' - '.$transporte["PATENTE"]; ?>
                       </option>
                     <?php } ?>
-                    <option>Iveco - Daily Chasis - AD698HA </option>
                   </select>
                 </div>
 
                 <div class="col-12">
                   <label for="fecha" class="form-label">Fecha programada (*)</label>
-                  <input type="date" class="form-control" id="fecha">
+                  <input type="date" class="form-control" id="fecha" name="FECHA" value="<?php echo !empty($_POST['FECHA']) ? $_POST['FECHA'] : ''; ?>">
                 </div>
+
                 <div class="col-12">
                   <label for="selector" class="form-label">Destino (*)</label>
-                  <select class="form-select" aria-label="Selector" id="selector">
-                    <option selected="">Selecciona una opcion</option>
-                    <option>Rio Primero </option>
-                    <option>Capilla del Monte</option>
-                    <option>San Francisco </option>
-                    <option>Morteros </option>
-                    <option>Toledo </option>
+                  <select class="form-select" aria-label="Selector" id="selector" name="DESTINO">
+                    <option value="">Selecciona una opcion</option>
+                    <?php foreach ($ListadoDestino as $destino) { ?>
+                      <!-- * Se asigna el "COD_CIU" deL destino como el valor del "option".
+                            *Se utiliza la condición ternaria para agregar el atributo "selected" a la opción que coincide con el valor enviado en $_POST['DESTINO'] -->
+                      <option value="<?php echo $destino["COD_CIU"]; ?>" <?php echo (!empty($_POST["DESTINO"]) && $_POST["DESTINO"] == $destino["COD_CIU"]) ? "selected" : ''; ?>>
+                        <?php echo $destino["NOM_CIUDAD"]; ?>
+                      </option>
+                    <?php } ?>                    
                   </select>
                 </div>
+
                 <div class="col-12">
                   <label for="costo" class="form-label">Costo (*)</label>
-                  <input type="text" class="form-control" id="costo">
+                  <input type="text" class="form-control" id="costo" name="COSTO" value="<?php echo !empty($_POST['COSTO']) ? $_POST['COSTO'] : ''; ?>">
                 </div>
+
                 <div class="col-12">
                   <label for="porc" class="form-label">Porcentaje chofer (*)</label>
-                  <input type="text" class="form-control" id="porc">
+                  <input type="text" class="form-control" id="porc" name="PORCENTAJE" value="<?php echo !empty($_POST['PORCENTAJE']) ? $_POST['PORCENTAJE'] : ''; ?>">
                 </div>
-
-
-
-
+                <?php print_r($_POST) ?>
 
                 <div class="text-center">
-                  <button class="btn btn-primary">Registrar</button>
+                <button class="btn btn-primary" type="submit" value="Registrar" name="BotonRegistrar">Registrar</button>
                   <button type="reset" class="btn btn-secondary">Limpiar Campos</button>
-                  <a href="index.html" class="text-primary fw-bold">Volver al index</a>
+                  <a href="index.php" class="text-primary fw-bold">Volver al index</a>
                 </div>
-              </form><!-- Vertical Form -->
 
+              </form><!-- Vertical Form -->
             </div>
           </div>
         </div>
